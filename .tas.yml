@@ -6,11 +6,14 @@ preMerge:
   pattern:
     - "./scripts/generate_cloudbuild_test.js"
     - "./scripts/run_flaky_test.js"
+    - "./scripts/release_notes/release_notes_test.ts"
 postMerge:
   pattern: 
     - "./scripts/generate_cloudbuild_test.js"
     - "./scripts/run_flaky_test.js"
+    - "./scripts/release_notes/release_notes_test.ts"
 postRun:
      command:
         - yarn --version
+configFile: "scripts/release_notes/tsconfig.json"
 version: 1.0
