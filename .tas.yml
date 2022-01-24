@@ -15,5 +15,5 @@ postMerge:
 postRun:
      command:
         - yarn --version
-configFile: "scripts/release_notes/tsconfig.json"
+configFile: "scripts/release_notes/run_tests.ts"
 version: 1.0
