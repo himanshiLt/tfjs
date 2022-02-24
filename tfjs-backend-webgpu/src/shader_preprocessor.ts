@@ -67,16 +67,16 @@ export interface InputInfo {
 
 export function getWorkGroupSizeString(): string {
   return `
-  [[stage(compute), workgroup_size(workGroupSizeX, workGroupSizeY, workGroupSizeZ)]]
+  @stage(compute) @workgroup_size(workGroupSizeX, workGroupSizeY, workGroupSizeZ)
 `;
 }
 
 export function getMainHeaderString(): string {
   return `
   ${getWorkGroupSizeString()}
-  fn main([[builtin(local_invocation_id)]] LocalId : vec3<u32>,
-          [[builtin(global_invocation_id)]] GlobalId : vec3<u32>,
-          [[builtin(num_workgroups)]] NumWorkgroups: vec3<u32>) {
+  fn main(@builtin(local_invocation_id) LocalId : vec3<u32>,
+          @builtin(global_invocation_id) GlobalId : vec3<u32>,
+          @builtin(num_workgroups) NumWorkgroups: vec3<u32>) {
     localId = LocalId;
     globalId = GlobalId;
     numWorkgroups = NumWorkgroups;
@@ -134,8 +134,8 @@ export function makeShader(
         dispatchSize    : vec3<u32>;
       };
 
-      [[group(0), binding(0)]] var<storage, write> result : Matrix0;
-      [[group(0), binding(2)]] var<uniform> uniforms: Uniform;
+      @group(0) @binding(0) var<storage, write> result : Matrix0;
+      @group(0) @binding(2) var<uniform> uniforms: Uniform;
     `);
     return [
       commonSnippet,
@@ -174,7 +174,7 @@ export function makeShader(
         numbers: array<atomic<i32>>;
     };
 
-    [[group(0), binding(0)]] var<storage, read_write> result : Matrix0;
+    @group(0) @binding(0) var<storage, read_write> result : Matrix0;
   `);
   } else {
     prefixSnippets.push(`
@@ -182,7 +182,7 @@ export function makeShader(
         numbers: array<${mapToWgslTypes(outputData.dtype, program.isVec4)}>;
     };
 
-    [[group(0), binding(0)]] var<storage, write> result : Matrix0;
+    @group(0) @binding(0) var<storage, write> result : Matrix0;
   `);
   }
   program.variableNames.forEach((x, i) => {
@@ -190,14 +190,14 @@ export function makeShader(
     struct Matrix${1 + i} {
       numbers: array<${mapToWgslTypes(inputInfo[i].dtype, program.isVec4)}>;
     };
-    [[group(0), binding(${1 + i})]] var<storage, read> ${x} : Matrix${1 + i};
+    @group(0) @binding(${1 + i}) var<storage, read> ${x} : Matrix${1 + i};
     `);
   });
 
   if (uniformDeclaration !== '') {
     prefixSnippets.push(`
-    [[group(0), binding(${
-        1 + program.variableNames.length})]] var<uniform> uniforms : Uniforms;
+    @group(0) @binding(${
+        1 + program.variableNames.length}) var<uniform> uniforms : Uniforms;
     `);
   }
 
@@ -269,20 +269,17 @@ const commonSnippet = `
     return res;
   }
 
-  fn isNanCustom(val : f32) -> bool {
-    if (val > 0.0) {
-      return false;
-    }
-    if (val < 0.0) {
-      return false;
-    }
-    if (val == 0.0) {
-      return false;
-    }
-    return true;
+  // NaN defination in IEEE 754-1985 is :
+  //   - sign = either 0 or 1.
+  //   - biased exponent = all 1 bits.
+  //   - fraction = anything except all 0 bits (since all 0 bits represents infinity).
+  // https://en.wikipedia.org/wiki/IEEE_754-1985#Representation_of_non-numbers
+  fn isnan(val: f32) -> bool {
+    let floatToUint: u32 = bitcast<u32>(val);
+    return (floatToUint & 0x7fffffffu) > 0x7f800000u;
   }
-  fn isNanCustomVec4(val : vec4<f32>) -> vec4<bool> {
-    return vec4<bool>(isNanCustom(val[0]), isNanCustom(val[1]), isNanCustom(val[2]), isNanCustom(val[3]));
+  fn isnanVec4(val : vec4<f32>) -> vec4<bool> {
+    return vec4<bool>(isnan(val[0]), isnan(val[1]), isnan(val[2]), isnan(val[3]));
   }
 `;
 
