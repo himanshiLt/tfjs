@@ -15,10 +15,8 @@
  * =============================================================================
  */
 
-import {getMainHeaderAndGlobalIndexString} from './shader_preprocessor';
+import {getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
-
-import {WebGPUProgram} from './webgpu_program';
 
 export class GatherProgram implements WebGPUProgram {
   outputShape: number[];
@@ -41,12 +39,14 @@ export class GatherProgram implements WebGPUProgram {
   }
 
   getUserCode(): string {
-    const sourceCoords = getSourceCoords(this.aShape, 'i32');
+    const sourceCoords = getSourceCoords(this.aShape);
     const userCode = `
       ${getMainHeaderAndGlobalIndexString()}
         if (index < uniforms.size) {
           let resRC = getCoordsFromIndex(index);
-          setOutputAtIndex(index, getA(${sourceCoords}));
+          let indexZ = i32(getIndices(resRC.x, resRC.z));
+          let inBounds = select(0.0, 1.0, indexZ >= 0 && indexZ < uniforms.aShape[2]);
+          setOutputAtIndex(index, inBounds * getA(${sourceCoords}));
         }
       }
     `;
@@ -55,12 +55,12 @@ export class GatherProgram implements WebGPUProgram {
 }
 
 // The input and output are always flattened into rank 4 tensors.
-function getSourceCoords(aShape: number[], typePrefix = 'int'): string {
+function getSourceCoords(aShape: number[]): string {
   const currentCoords = ['resRC.x', 'resRC.y', 'resRC.z', 'resRC.w'];
   const sourceCoords = [];
   for (let i = 0; i < aShape.length; i++) {
     if (i === 2) {
-      sourceCoords.push(`${typePrefix}(getIndices(resRC.x, resRC.z))`);
+      sourceCoords.push('indexZ');
     } else {
       sourceCoords.push(`${currentCoords[i]}`);
     }

@@ -15,14 +15,13 @@
  * =============================================================================
  */
 
-import {getMainHeaderAndGlobalIndexString} from './shader_preprocessor';
-import {WebGPUProgram} from './webgpu_program';
+import {getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class TransformProgram implements WebGPUProgram {
   variableNames = ['Image', 'Transforms'];
   outputShape: number[];
-  uniforms = 'interpolationModeId : i32; fillModeId : i32; fillValue : f32;';
+  uniforms = 'interpolationModeId : i32, fillModeId : i32, fillValue : f32,';
   shaderKey: string;
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];

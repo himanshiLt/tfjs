@@ -16,9 +16,7 @@
  */
 
 import {backend_util} from '@tensorflow/tfjs-core';
-
-import {getMainHeaderAndGlobalIndexString} from './shader_preprocessor';
-import {WebGPUProgram} from './webgpu_program';
+import {getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class ReduceProgram implements WebGPUProgram {
@@ -28,7 +26,7 @@ export class ReduceProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   workGroupSize: [number, number, number] = [64, 1, 1];
   variableNames = ['x'];
-  uniforms = 'reduceSize : i32;';
+  uniforms = 'reduceSize : i32,';
   reduceType: 'max'|'mean'|'min'|'prod'|'sum';
   inputShape: number[];
   size = true;
@@ -61,7 +59,7 @@ export class ReduceProgram implements WebGPUProgram {
          } else if (!isnan(bestValue) && candidate ${
           this.reduceType === 'min' ? '<' : '>'} bestValue)
            {  bestValue = candidate; }`;
-      initValue = 'f32(x.numbers[offset])';
+      initValue = 'f32(x[offset])';
     } else if (this.reduceType === 'sum' || this.reduceType === 'mean') {
       reduceOp = ' bestValue = bestValue + candidate; ';
     } else if (this.reduceType === 'prod') {
@@ -100,7 +98,7 @@ export class ReduceProgram implements WebGPUProgram {
          let WorkPerThread = DIV_CEIL(u32(Length), workGroupSizeX);
          for (var k = i32(localId.x); k < Length && outputIndex < uniforms.size;
              k = k + i32(workGroupSizeX)) {
-           let candidate = f32(x.numbers[offset + k]);
+           let candidate = f32(x[offset + k]);
            ${reduceOp}
          }
          xBestValues[localId.x] = bestValue;

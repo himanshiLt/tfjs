@@ -15,8 +15,7 @@
  * =============================================================================
  */
 
-import {getCoordsDataType, getMainHeaderAndGlobalIndexString} from './shader_preprocessor';
-import {WebGPUProgram} from './webgpu_program';
+import {getCoordsDataType, getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
 
 export class MirrorPadProgram implements WebGPUProgram {
@@ -42,7 +41,7 @@ export class MirrorPadProgram implements WebGPUProgram {
 
     this.xShape = xShape;
     paddings.map((_, i) => {
-      this.uniforms += ` pad${i} : vec2<i32>;`;
+      this.uniforms += ` pad${i} : vec2<i32>,`;
     });
     this.offset = mode === 'reflect' ? 0 : 1;
     this.shaderKey = `mirrorPad_${mode}`;

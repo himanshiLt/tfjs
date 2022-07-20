@@ -15,10 +15,8 @@
  * =============================================================================
  */
 
-import {getCoordsDataType, getMainHeaderAndGlobalIndexString} from './shader_preprocessor';
+import {getCoordsDataType, getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
-
-import {WebGPUProgram} from './webgpu_program';
 
 export class GatherNDProgram implements WebGPUProgram {
   outputShape: number[];
@@ -37,7 +35,7 @@ export class GatherNDProgram implements WebGPUProgram {
         this.dispatchLayout, this.outputShape, this.workGroupSize);
     this.shaderKey = `gathernd_${sliceDim}`;
     this.sliceDim = sliceDim;
-    this.uniforms = `sliceDim : i32; strides : ${getCoordsDataType(sliceDim)};`;
+    this.uniforms = `sliceDim : i32, strides : ${getCoordsDataType(sliceDim)},`;
   }
 
   getUserCode(): string {

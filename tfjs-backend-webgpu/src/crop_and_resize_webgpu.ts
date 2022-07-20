@@ -15,10 +15,8 @@
  * =============================================================================
  */
 
-import {getMainHeaderAndGlobalIndexString} from './shader_preprocessor';
+import {getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
-
-import {WebGPUProgram} from './webgpu_program';
 
 export class CropAndResizeProgram implements WebGPUProgram {
   outputShape: number[];
@@ -26,7 +24,7 @@ export class CropAndResizeProgram implements WebGPUProgram {
   dispatchLayout: {x: number[]};
   dispatch: [number, number, number];
   variableNames = ['Image', 'Boxes', 'BoxInd'];
-  uniforms = 'extrapolationValue : f32;';
+  uniforms = 'extrapolationValue : f32,';
   workGroupSize: [number, number, number] = [64, 1, 1];
   methodId: number;
   cropHeightBiggerThan1: boolean;

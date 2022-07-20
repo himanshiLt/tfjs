@@ -15,10 +15,8 @@
  * =============================================================================
  */
 
-import {getMainHeaderAndGlobalIndexString} from './shader_preprocessor';
+import {getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
-
-import {WebGPUProgram} from './webgpu_program';
 
 export class DepthToSpaceProgram implements WebGPUProgram {
   variableNames = ['x'];
@@ -29,7 +27,7 @@ export class DepthToSpaceProgram implements WebGPUProgram {
   dispatch: [number, number, number];
   workGroupSize: [number, number, number] = [64, 1, 1];
   size = true;
-  uniforms = 'blockSize : i32;';
+  uniforms = 'blockSize : i32,';
 
   constructor(outputShape: number[], dataFormat: 'NHWC'|'NCHW') {
     this.outputShape = outputShape;

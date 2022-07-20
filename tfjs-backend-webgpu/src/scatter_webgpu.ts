@@ -15,10 +15,8 @@
  * =============================================================================
  */
 
-import {getCoordsDataType, getMainHeaderAndGlobalIndexString} from './shader_preprocessor';
+import {getCoordsDataType, getMainHeaderAndGlobalIndexString, WebGPUProgram} from './webgpu_program';
 import {computeDispatch, flatDispatchLayout} from './webgpu_util';
-
-import {WebGPUProgram} from './webgpu_program';
 
 export class ScatterProgram implements WebGPUProgram {
   variableNames = ['updates', 'indices', 'defaultValue'];
@@ -48,7 +46,7 @@ export class ScatterProgram implements WebGPUProgram {
         `scatter_${indicesRank}_${updatesRank}_${sliceDimGreaterThanOne}`;
     const stridesType = getCoordsDataType(strides.length);
     this.uniforms =
-        `updateSize : i32; sliceDim : i32; strides: ${stridesType};`;
+        `updateSize : i32, sliceDim : i32, strides: ${stridesType},`;
     let indicesString = '';
     if (indicesRank === 1) {
       indicesString = 'i';
